@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2c201b">
+  <title>口味研究室｜店員看板</title>
+  <meta name="description" content="查看顧客送出的咖啡客製訂單。">
+  <style>
+:root {
+  color-scheme: light;
+  --ink: #25201e; --muted: #70635d; --accent: #9e3e24;
+  --line: #e3d9d0; --paper: #faf8f5; --selected: #fff1e7;
+  --dark: #2c201b; --done: #57785b; --danger: #a73428;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 1rem/1.6 system-ui, -apple-system, "Noto Sans TC", sans-serif; }
+button, input { font: inherit; }
+button, a { touch-action: manipulation; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+button:focus-visible, a:focus-visible { outline: 3px solid #b87343; outline-offset: 4px; }
+.site-header { max-width: 1180px; margin: auto; padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); }
+.brand { color: var(--ink); text-decoration: none; font-size: 1.25rem; font-weight: 750; letter-spacing: .09em; }
+.brand small { display: block; margin-top: 2px; font-size: .75rem; letter-spacing: .17em; font-weight: 500; color: var(--muted); }
+.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.link-button, .button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; border-radius: 8px; border: 1px solid var(--line); background: white; color: var(--ink); padding: 9px 14px; text-decoration: none; font-weight: 650; }
+.button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+.button.ghost { background: transparent; }
+.button.danger { color: var(--danger); }
+.button.done { background: #edf3ed; border-color: #bfd0c0; color: #315d36; }
+main { max-width: 1180px; margin: 28px auto 42px; padding: 0 32px; }
+.board-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: end; margin-bottom: 22px; }
+h1 { margin: 0 0 8px; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.28; letter-spacing: 0; }
+.sub { margin: 0; color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(92px, 1fr)); gap: 10px; min-width: 330px; }
+.stat { border: 1px solid var(--line); background: white; border-radius: 8px; padding: 12px 14px; }
+.stat strong { display: block; font-size: 1.55rem; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: .875rem; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 22px; padding: 12px; background: #fffaf6; border: 1px solid var(--line); border-radius: 10px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter { min-height: 40px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font-weight: 650; }
+.filter.active { background: var(--dark); border-color: var(--dark); color: #fff7f1; }
+.toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.updated { color: var(--muted); font-size: .875rem; margin: 0 0 16px; }
+.orders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.order-card { background: white; border: 1px solid var(--line); border-left: 6px solid var(--accent); border-radius: 8px; overflow: hidden; }
+.order-card.done { border-left-color: var(--done); opacity: .82; }
+.order-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 12px; border-bottom: 1px solid var(--line); background: #fffdfb; }
+.order-number { display: block; color: var(--accent); font-size: 1.35rem; font-weight: 800; line-height: 1.2; }
+.order-card.done .order-number { color: var(--done); }
+.order-time { color: var(--muted); font-size: .875rem; white-space: nowrap; }
+.status { display: inline-flex; align-items: center; min-height: 28px; padding: 3px 9px; border-radius: 999px; background: var(--selected); color: var(--accent); font-size: .8125rem; font-weight: 700; white-space: nowrap; }
+.order-card.done .status { background: #edf3ed; color: var(--done); }
+.order-body { padding: 18px 20px 6px; }
+.drink { margin: 0 0 12px; font-size: 1.45rem; line-height: 1.35; }
+dl { margin: 0; }
+dl div { display: grid; grid-template-columns: 7em 1fr; gap: 12px; padding: 11px 0; border-top: 1px dashed var(--line); }
+dt { color: var(--muted); }
+dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
+.order-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding: 14px 20px 18px; }
+.empty { border: 1px dashed #cbb8a7; background: #fffaf6; border-radius: 10px; padding: 34px 24px; text-align: center; }
+.empty h2 { margin: 0 0 8px; font-size: 1.35rem; }
+.empty p { margin: 0; color: var(--muted); }
+.footer { max-width: 1180px; margin: 0 auto; border-top: 1px solid var(--line); padding: 20px 32px; color: var(--muted); font-size: .8125rem; display: flex; justify-content: space-between; gap: 14px; }
+.footer a { color: inherit; }
+@media (max-width: 820px) {
+  .site-header { padding: 16px; align-items: flex-start; }
+  main { margin: 18px auto 32px; padding: 0 16px; }
+  .board-head { grid-template-columns: 1fr; }
+  .stats { min-width: 0; }
+  .toolbar { align-items: stretch; flex-direction: column; }
+  .toolbar-actions { justify-content: flex-start; }
+  .orders { grid-template-columns: 1fr; }
+  .footer { padding: 18px 16px; flex-wrap: wrap; }
+}
+@media (max-width: 430px) {
+  .site-header { flex-direction: column; }
+  .header-actions { justify-content: flex-start; }
+  .stats { grid-template-columns: 1fr; }
+  dl div { grid-template-columns: 5.5em 1fr; gap: 10px; }
+  .order-top { flex-direction: column; }
+  .order-time { white-space: normal; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .button, .filter, .link-button { transition: background-color .15s, border-color .15s, color .15s; }
+}
+  [hidden] { display: none !important; }
+  button:disabled { cursor: wait; opacity: .5; }
+  .login-panel { max-width: 420px; margin: 56px auto; }
+  .login-panel label { display: block; margin: 24px 0 8px; font-weight: 650; }
+  .login-panel input { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; }
+  .login-panel button { width: 100%; }
+  #login-error, #board-error { color: #9b2323; overflow-wrap: anywhere; }
+  #board-error { padding: 12px 0; }
+  #load-more { margin-top: 22px; }
+  .orders .empty { grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="回顧客點餐頁">口味研究室<small>STAFF BOARD</small></a>
+    <div class="header-actions">
+      <a class="link-button" href="index.html">顧客點餐頁</a>
+      <button class="button primary" type="button" data-action="refresh" hidden>重新整理</button>
+      <button class="button ghost" type="button" data-action="logout" hidden>登出</button>
+    </div>
+  </header>
+  <main>
+    <section id="login-panel" class="login-panel" aria-labelledby="login-title">
+      <h1 id="login-title">店員登入</h1>
+      <form id="login-form">
+        <label for="staff-password">店員密碼</label>
+        <input id="staff-password" name="password" type="password" autocomplete="current-password" required>
+        <p id="login-error" role="alert"></p>
+        <button class="button primary" type="submit">登入</button>
+      </form>
+    </section>
+    <div id="board" hidden>
+    <section class="board-head" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">店員看板</h1>
+        <p class="sub">顧客送出後，訂單會出現在這裡。</p>
+      </div>
+      <div class="stats" aria-label="訂單統計">
+        <div class="stat"><strong id="new-count">0</strong><span>新訂單</span></div>
+        <div class="stat"><strong id="done-count">0</strong><span>已完成</span></div>
+        <div class="stat"><strong id="total-count">0</strong><span>全部</span></div>
+      </div>
+    </section>
+    <section class="toolbar" aria-label="看板工具">
+      <div class="filters" role="tablist" aria-label="訂單篩選">
+        <button class="filter active" type="button" data-filter="new" role="tab" aria-selected="true">新訂單</button>
+        <button class="filter" type="button" data-filter="all" role="tab" aria-selected="false">全部</button>
+        <button class="filter" type="button" data-filter="done" role="tab" aria-selected="false">已完成</button>
+      </div>
+      <div class="toolbar-actions">
+        <button class="button ghost" type="button" data-action="clear-done">清掉已完成</button>
+      </div>
+    </section>
+    <p class="updated" id="updated" role="status">正在連線…</p>
+    <p id="board-error" role="alert" hidden></p>
+    <section class="orders" id="orders" aria-live="polite"></section>
+    <button class="button ghost" id="load-more" type="button" hidden>載入較早訂單</button>
+    </div>
+  </main>
+  <footer class="footer">
+    <span>口味研究室 · 店員版</span>
+    <span>口味與訂單狀態同步更新</span>
+  </footer>
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="staff.js"></script>
+</body>
+</html>

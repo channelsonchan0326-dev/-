@@ -26,6 +26,9 @@ button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visib
 .brand { background: none; border: 0; color: var(--ink); padding: 0; text-align: left; font-size: 1.25rem; font-weight: 750; letter-spacing: .09em; }
 .brand small { display: block; margin-top: 2px; font-size: .75rem; letter-spacing: .17em; font-weight: 500; }
 .header-label { color: var(--muted); font-size: .875rem; }
+.header-tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
+.staff-link { color: var(--accent); text-decoration: none; font-size: .875rem; font-weight: 650; border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; background: #fffaf6; }
+.staff-link:hover { border-color: #b87343; background: var(--selected); }
 main { max-width: 1160px; margin: 32px auto; padding: 0 32px; }
 .cover { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); min-height: 510px; overflow: hidden; border-radius: 18px; background: #2c201b; color: #fff7f1; }
 .cover-copy { min-width: 0; padding: 52px 40px; display: flex; flex-direction: column; justify-content: center; }
@@ -102,6 +105,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
 .receipt-foot { background: #f4ece5; padding: 20px 30px; margin-top: 15px; }
 .receipt-foot strong { display: block; font-size: 1.0625rem; }
 .receipt-foot p { color: var(--muted); margin: 5px 0 0; font-size: .875rem; }
+.order-code { margin: 10px 0 0; color: var(--accent); font-size: 1.2rem; font-weight: 750; }
 .complete-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 25px; }
 .footer { max-width: 1160px; margin: 24px auto 0; border-top: 1px solid var(--line); padding: 20px 32px; color: var(--muted); font-size: .75rem; display: flex; justify-content: space-between; gap: 14px; }
 .footer a { color: inherit; }
@@ -136,7 +140,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
 @media (max-width: 370px) {
   .cover-copy { padding: 22px 20px; }
   .choices { grid-template-columns: 1fr; } .choice-box { min-height: 0; }
-  .selects { grid-template-columns: 1fr; } .header-label { font-size: .8125rem; }
+  .selects { grid-template-columns: 1fr; } .header-label, .staff-link { font-size: .8125rem; }
 }
 @media (max-width: 720px) and (max-height: 700px) and (orientation: portrait) {
   .cover-photo { aspect-ratio: 12 / 5; }
@@ -151,7 +155,10 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
 <body>
   <header class="site-header">
     <button class="brand" type="button" data-action="home" aria-label="口味研究室，回封面">口味研究室<small>COFFEE, YOUR WAY.</small></button>
-    <span class="header-label" id="header-label">顧客客製體驗</span>
+    <div class="header-tools">
+      <span class="header-label" id="header-label">顧客客製體驗</span>
+      <a class="staff-link" href="staff.html">店員看板</a>
+    </div>
   </header>
   <main>
     <section class="cover" id="cover" aria-labelledby="cover-title">
@@ -177,8 +184,9 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
     <span>口味研究室 · 顧客版</span>
     <a href="https://unsplash.com/photos/white-ceramic-mug-with-brown-liquid-1Mjr2ontCEM" target="_blank" rel="noreferrer">攝影：Nathan Dumlao / Unsplash</a>
   </footer>
+  <script src="config.js"></script>
+  <script src="api.js"></script>
   <script>
-// 顧客版：所有操作都在本頁完成，最後產生可出示給店員的口味筆記。
 const $ = id => document.getElementById(id);
 const DRINKS = {
   latte: { name: '一般拿鐵', description: '咖啡與牛奶，圓潤滑順。', milk: 'yes' },
@@ -197,6 +205,11 @@ const initialState = () => ({
 });
 let state = initialState();
 let screen = 'cover';
+let lastOrder = null;
+let submitting = false;
+let submitError = '';
+let pendingOrder = null;
+try { pendingOrder = JSON.parse(sessionStorage.getItem('coffeePendingOrder') || 'null'); } catch {}
 const STEP_NAMES = { milk: '奶的選擇', sugar: '糖與甜度', direction: '酸苦方向', intensity: '口味程度', drink: '飲品選擇', finish: '最後調整' };
 const sequence = () => state.mode === 'direct' ? ['drink', 'finish'] : ['milk', 'sugar', 'direction', 'intensity', 'finish'];
 const availableDrinks = () => Object.keys(DRINKS).filter(id => state.mode === 'direct' || DRINKS[id].milk === state.milk);
@@ -230,7 +243,7 @@ function drinkChoices() {
   return group('選擇飲品', availableDrinks().map(id => radio('drink', id, DRINKS[id].name, DRINKS[id].description)).join(''), state.mode === 'direct' ? 'three' : '');
 }
 function finishView() {
-  let html = '<h1 id="page-title" tabindex="-1">最後，調成你喜歡的樣子。</h1><p class="sub">選好後按「確認我的咖啡」，就能查看完整口味筆記。</p>';
+  let html = '<h1 id="page-title" tabindex="-1">最後，調成你喜歡的樣子。</h1><p class="sub">選好後按「送出給店員」，店員看板就會收到這張訂單。</p>';
   if (state.mode === 'guided' && state.milk === 'no') html += drinkChoices();
   else {
     const drink = DRINKS[state.drink];
@@ -256,8 +269,21 @@ function noteRows() {
   } else rows.push(['咖啡風味', '店家標準']);
   return rows;
 }
+async function submitOrder() {
+  const selection = JSON.parse(JSON.stringify(state));
+  if (!pendingOrder || JSON.stringify(pendingOrder.selection) !== JSON.stringify(selection)) {
+    pendingOrder = { requestId: crypto.randomUUID(), selection };
+    try { sessionStorage.setItem('coffeePendingOrder', JSON.stringify(pendingOrder)); } catch {}
+  }
+  const { order } = await CoffeeAPI.request('/api/orders', { method: 'POST', body: pendingOrder });
+  if (!order?.number || !Array.isArray(order.rows)) throw new Error('無法確認訂單，請在此頁重試。');
+  pendingOrder = null;
+  try { sessionStorage.removeItem('coffeePendingOrder'); } catch {}
+  return order;
+}
 function completeView() {
-  return `<section class="complete"><div class="complete-heading"><p class="eyebrow">照你的喜歡</p><h1 id="page-title" tabindex="-1">這杯咖啡，選好了。</h1><p class="sub">確認以下內容，再出示給店員。</p></div><article class="receipt" aria-labelledby="note-title"><div class="receipt-top"><p class="eyebrow">你的口味筆記</p><h2 id="note-title">${DRINKS[state.drink].name}</h2></div><div class="receipt-body"><dl>${noteRows().map(([key, value]) => `<div><dt>${key}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl></div><div class="receipt-foot"><strong>請出示給店員</strong><p>此頁尚未送出訂單。請與店員確認品項、客製內容及金額後完成點餐。</p></div></article><div class="complete-actions"><button class="button secondary" type="button" data-action="edit">修改選擇</button><button class="button primary" type="button" data-action="restart">重新選一杯</button></div></section>`;
+  const order = lastOrder;
+  return `<section class="complete"><div class="complete-heading"><p class="eyebrow">已送出</p><h1 id="page-title" tabindex="-1">訂單已送達。</h1><p class="sub">請保留訂單號碼，等候店員確認及叫號。</p></div><article class="receipt" aria-labelledby="note-title"><div class="receipt-top"><p class="eyebrow">你的口味筆記</p><h2 id="note-title">${escapeHTML(order.drink)}</h2><p class="order-code">訂單 ${escapeHTML(order.number)}</p></div><div class="receipt-body"><dl>${order.rows.map(([key, value]) => `<div><dt>${escapeHTML(key)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl></div><div class="receipt-foot"><strong>店家已收到你的點餐內容</strong><p>如需修改或取消，請告知店員此訂單號碼。</p></div></article><div class="complete-actions"><button class="button primary" type="button" data-action="restart">再點一杯</button></div></section>`;
 }
 function canContinue() {
   if (screen === 'milk') return state.milk !== null;
@@ -289,7 +315,20 @@ function render(focusTitle = false) {
     }
     if (screen === 'drink') content = '<h1 id="page-title" tabindex="-1">今天想喝哪一杯？</h1><p class="sub">直接選飲品，下一步選冷熱就能確認。</p>' + drinkChoices();
     if (screen === 'finish') content = finishView();
-    $('surface').innerHTML = `<section class="flow"><div class="flow-head"><span>${STEP_NAMES[screen]}</span><span>第 ${index + 1} / ${steps.length} 步</span></div><div class="progress" role="progressbar" aria-label="選擇進度" aria-valuemin="0" aria-valuemax="${steps.length}" aria-valuenow="${index + 1}">${steps.map((_, i) => `<i class="${i <= index ? 'done' : ''}" aria-hidden="true"></i>`).join('')}</div><form id="coffee-form" novalidate>${content}<div class="form-nav"><button class="back" type="button" data-action="back">← ${index === 0 ? '回封面' : '上一步'}</button><button class="button primary" type="submit" ${canContinue() ? '' : 'disabled'}>${screen === 'finish' ? '確認我的咖啡' : '下一步 →'}</button></div></form></section>`;
+    $('surface').innerHTML = `<section class="flow"><div class="flow-head"><span>${STEP_NAMES[screen]}</span><span>第 ${index + 1} / ${steps.length} 步</span></div><div class="progress" role="progressbar" aria-label="選擇進度" aria-valuemin="0" aria-valuemax="${steps.length}" aria-valuenow="${index + 1}">${steps.map((_, i) => `<i class="${i <= index ? 'done' : ''}" aria-hidden="true"></i>`).join('')}</div><form id="coffee-form" novalidate>${content}<div class="form-nav"><button class="back" type="button" data-action="back">← ${index === 0 ? '回封面' : '上一步'}</button><button class="button primary" type="submit" ${canContinue() ? '' : 'disabled'}>${screen === 'finish' ? '送出給店員' : '下一步 →'}</button></div></form></section>`;
+  }
+  const form = $('coffee-form');
+  if (form && submitting) {
+    form.setAttribute('aria-busy', 'true');
+    form.querySelectorAll('input, select, button').forEach(control => control.disabled = true);
+    form.querySelector('[type="submit"]').textContent = '送出中…';
+  }
+  if (form && submitError) {
+    const message = document.createElement('p');
+    message.className = 'hint';
+    message.setAttribute('role', 'alert');
+    message.textContent = submitError;
+    form.querySelector('.form-nav').before(message);
   }
   if (focusTitle) {
     $('page-title').focus({ preventScroll: true });
@@ -299,13 +338,27 @@ function render(focusTitle = false) {
 function start(mode) {
   state = initialState();
   state.mode = mode;
+  lastOrder = null;
+  submitError = '';
   if (mode === 'direct') { state.sugar = 'no'; state.direction = 'standard'; }
   screen = sequence()[0];
   render(true);
 }
-function next() {
-  if (!canContinue()) return;
-  if (screen === 'finish') screen = 'complete';
+async function next() {
+  if (submitting || !canContinue()) return;
+  if (screen === 'finish') {
+    submitting = true;
+    submitError = '';
+    render();
+    try {
+      lastOrder = await submitOrder();
+      screen = 'complete';
+    } catch (error) {
+      submitError = error.message;
+    } finally {
+      submitting = false;
+    }
+  }
   else { const steps = sequence(); screen = steps[steps.indexOf(screen) + 1]; }
   render(true);
 }
@@ -344,14 +397,19 @@ document.addEventListener('submit', event => {
   if (event.target.id === 'coffee-form') { event.preventDefault(); next(); }
 });
 document.addEventListener('click', event => {
+  if (submitting) return;
   const button = event.target.closest('[data-action]');
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   if (action === 'guided' || action === 'direct') start(action);
   if (action === 'back') back();
-  if (action === 'edit') { screen = 'finish'; render(true); }
-  if (action === 'home' || action === 'restart') { state = initialState(); screen = 'cover'; render(true); }
+  if (action === 'home' || action === 'restart') { state = initialState(); lastOrder = null; screen = 'cover'; render(true); }
 });
+if (pendingOrder?.selection && DRINKS[pendingOrder.selection.drink]) {
+  state = { ...initialState(), ...pendingOrder.selection };
+  screen = 'finish';
+  submitError = '上次送出的訂單尚未確認。請再次送出以確認結果，同一筆不會重複成立。';
+}
 render();
 
 </script>

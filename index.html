@@ -71,7 +71,7 @@ legend { padding: 0; margin-bottom: 14px; font-weight: 650; font-size: 1.05rem; 
 .note { font-size: .875rem; color: var(--muted); line-height: 1.8; margin: 18px 0 0; }
 .section-gap { margin-top: 30px; }
 .hint { font-size: 1rem; color: #76331f; background: #f5e8de; padding: 13px 18px; border-radius: 8px; margin: 0 0 18px; }
-.scale-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.scale-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .scale-option { position: relative; display: block; cursor: pointer; }
 .scale-box { height: 100%; min-height: 98px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 14px 5px; border: 2px solid var(--line); border-radius: 11px; background: white; }
 .scale-number { font-size: 1.65rem; line-height: 1.3; font-weight: 700; }
@@ -194,10 +194,12 @@ const DRINKS = {
   pourover: { name: '手沖咖啡', description: '不加奶，細細感受咖啡香氣。', milk: 'no' }
 };
 const LEVELS = {
-  sweet: { title: '甜度', short: ['微甜', '少甜', '標準', '偏甜', '很甜'], full: ['微甜', '少甜', '標準甜度', '偏甜', '很甜'], left: '微甜', right: '很甜', hint: '數字越大，喝起來越甜。' },
-  acid: { title: '酸味', short: ['極柔和', '柔和', '適中', '明顯', '強烈'], full: ['非常柔和的果酸', '柔和果酸', '酸味適中', '明顯果酸', '強烈、明亮的果酸'], left: '柔和果酸', right: '明亮果酸', hint: '數字越大，酸味越明顯。' },
-  bitter: { title: '苦味', short: ['極微苦', '微苦', '適中', '明顯', '強烈'], full: ['非常輕微的苦味', '柔和微苦', '苦味適中', '明顯苦味', '強烈苦味'], left: '柔和微苦', right: '濃烈苦感', hint: '數字越大，苦味越明顯。' }
+  sweet: { title: '甜度', short: ['微甜', '少甜', '標準', '偏甜', '很甜'], full: ['微甜', '少甜', '標準甜度', '偏甜', '很甜'], left: '少甜', right: '偏甜', hint: '數字越大，喝起來越甜。' },
+  acid: { title: '酸味', short: ['極柔和', '柔和', '適中', '明顯', '強烈'], full: ['非常柔和的果酸', '柔和果酸', '酸味適中', '明顯果酸', '強烈、明亮的果酸'], left: '柔和果酸', right: '明顯果酸', hint: '數字越大，酸味越明顯。' },
+  bitter: { title: '苦味', short: ['極微苦', '微苦', '適中', '明顯', '強烈'], full: ['非常輕微的苦味', '柔和微苦', '苦味適中', '明顯苦味', '強烈苦味'], left: '柔和微苦', right: '明顯苦味', hint: '數字越大，苦味越明顯。' }
 };
+// Retain original recipe values for compatibility with cloud orders.
+const TASTE_LEVELS = [2, 3, 4];
 const SAUCES = { plain: '原味糖', hazelnut: '榛果糖醬', caramel: '焦糖糖醬' };
 const initialState = () => ({
   mode: 'guided', milk: null, drink: null, sugar: null, sauce: 'plain', sweet: 2,
@@ -223,7 +225,7 @@ function group(legend, content, columns = '', visibleLegend = false) {
   return `<fieldset><legend${visibleLegend ? '' : ' class="sr-only"'}>${legend}</legend><div class="choices ${columns}">${content}</div></fieldset>`;
 }
 function scale(name, level) {
-  return `<fieldset class="section-gap"><legend>${level.title}程度</legend><p class="hint" id="${name}-hint">${level.hint}</p><div class="scale-grid">${[1, 2, 3, 4, 5].map(n => `<label class="scale-option"><input type="radio" name="${name}" value="${n}" ${state[name] === n ? 'checked' : ''} aria-label="${n}，${level.full[n - 1]}" aria-describedby="${name}-hint"><span class="scale-box"><span class="scale-number">${n}</span><span class="scale-label">${level.short[n - 1]}</span></span></label>`).join('')}</div><div class="scale-ends"><span>${level.left}</span><span>${level.right}</span></div><output class="selected-text" id="${name}-description" aria-live="polite">目前選擇：${state[name]} · ${level.full[state[name] - 1]}</output></fieldset>`;
+  return `<fieldset class="section-gap"><legend>${level.title}程度</legend><p class="hint" id="${name}-hint">${level.hint}</p><div class="scale-grid">${TASTE_LEVELS.map(n => `<label class="scale-option"><input type="radio" name="${name}" value="${n}" ${state[name] === n ? 'checked' : ''} aria-label="${n - 1}，${level.full[n - 1]}" aria-describedby="${name}-hint"><span class="scale-box"><span class="scale-number">${n - 1}</span><span class="scale-label">${level.short[n - 1]}</span></span></label>`).join('')}</div><div class="scale-ends"><span>${level.left}</span><span>${level.right}</span></div><output class="selected-text" id="${name}-description" aria-live="polite">目前選擇：${state[name] - 1} · ${level.full[state[name] - 1]}</output></fieldset>`;
 }
 function sugarControls() {
   let html = group('需要加糖嗎？', radio('sugar', 'no', '不加糖', '不額外加糖或風味糖醬。') + radio('sugar', 'yes', '要糖', '選擇糖的口味與甜度。'));
@@ -257,6 +259,10 @@ function finishView() {
   }
   return html;
 }
+function formatTasteValue(key, value) {
+  if (!['甜度', '酸味程度', '苦味程度'].includes(key) || typeof value !== 'string') return value;
+  return value.replace(/^([234]) \/ 5 · /, (_, level) => `${Number(level) - 1} / 3 · `);
+}
 function noteRows() {
   const rows = [['飲品', DRINKS[state.drink].name], ['冷熱', state.temp]];
   if (state.temp === '冰飲') rows.push(['冰量', state.ice]);
@@ -267,7 +273,7 @@ function noteRows() {
     const level = acidOrBitter();
     rows.push(['風味方向', state.direction === 'acid' ? '偏酸' : '偏苦'], [`${level.title}程度`, `${state.intensity} / 5 · ${level.full[state.intensity - 1]}`]);
   } else rows.push(['咖啡風味', '店家標準']);
-  return rows;
+  return rows.map(([key, value]) => [key, formatTasteValue(key, value)]);
 }
 async function submitOrder() {
   const selection = JSON.parse(JSON.stringify(state));
@@ -282,7 +288,7 @@ async function submitOrder() {
   return order;
 }
 function completeView() {
-  const order = lastOrder;
+  const order = { ...lastOrder, rows: lastOrder.rows.map(([key, value]) => [key, formatTasteValue(key, value)]) };
   return `<section class="complete"><div class="complete-heading"><p class="eyebrow">已送出</p><h1 id="page-title" tabindex="-1">訂單已送達。</h1><p class="sub">請保留訂單號碼，等候店員確認及叫號。</p></div><article class="receipt" aria-labelledby="note-title"><div class="receipt-top"><p class="eyebrow">你的口味筆記</p><h2 id="note-title">${escapeHTML(order.drink)}</h2><p class="order-code">訂單 ${escapeHTML(order.number)}</p></div><div class="receipt-body"><dl>${order.rows.map(([key, value]) => `<div><dt>${escapeHTML(key)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl></div><div class="receipt-foot"><strong>店家已收到你的點餐內容</strong><p>如需修改或取消，請告知店員此訂單號碼。</p></div></article><div class="complete-actions"><button class="button primary" type="button" data-action="restart">再點一杯</button></div></section>`;
 }
 function canContinue() {
@@ -371,11 +377,11 @@ function changeChoice(name, value) {
   const valid = { milk: ['yes', 'no'], sugar: ['yes', 'no'], sauce: Object.keys(SAUCES), direction: state.mode === 'direct' ? ['standard', 'acid', 'bitter'] : ['acid', 'bitter'], temp: ['冰飲', '熱飲'], ice: ['去冰', '微冰', '少冰', '標準冰'], milkAmount: ['少奶', '標準奶量', '多奶'], drink: availableDrinks() };
   if (name === 'sweet' || name === 'intensity') {
     const number = Number(value);
-    if (!Number.isInteger(number) || number < 1 || number > 5) return;
+    if (!TASTE_LEVELS.includes(number)) return;
     state[name] = number;
     const level = name === 'sweet' ? LEVELS.sweet : acidOrBitter();
     const output = $(`${name}-description`);
-    if (output) output.textContent = `目前選擇：${number} · ${level.full[number - 1]}`;
+    if (output) output.textContent = `目前選擇：${number - 1} · ${level.full[number - 1]}`;
     return;
   }
   if (!valid[name] || !valid[name].includes(value)) return;

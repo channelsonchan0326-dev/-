@@ -16,6 +16,10 @@ const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c =>
 function formatTime(value) {
   return new Intl.DateTimeFormat('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
+function formatTasteValue(key, value) {
+  if (!['甜度', '酸味程度', '苦味程度'].includes(key) || typeof value !== 'string') return value;
+  return value.replace(/^([234]) \/ 5 · /, (_, level) => `${Number(level) - 1} / 3 · `);
+}
 function orderCard(order) {
   const done = order.status === 'done';
   return '<article class="order-card ' + (done ? 'done' : '') + '"><div class="order-top"><div>' +
@@ -23,7 +27,7 @@ function orderCard(order) {
     '<time class="order-time" datetime="' + escapeHTML(order.createdAt) + '">' + formatTime(order.createdAt) + '</time></div>' +
     '<span class="status">' + (done ? '已完成' : '待製作') + '</span></div><div class="order-body">' +
     '<h2 class="drink">' + escapeHTML(order.drink) + '</h2><dl>' +
-    order.rows.map(([key, value]) => '<div><dt>' + escapeHTML(key) + '</dt><dd>' + escapeHTML(value) + '</dd></div>').join('') +
+    order.rows.map(([key, value]) => '<div><dt>' + escapeHTML(key) + '</dt><dd>' + escapeHTML(formatTasteValue(key, value)) + '</dd></div>').join('') +
     '</dl></div><div class="order-actions">' +
     '<button class="button ' + (done ? 'ghost' : 'done') + '" type="button" data-action="' + (done ? 'restore' : 'done') +
     '" data-id="' + escapeHTML(order.id) + '">' + (done ? '改回待製作' : '標記完成') + '</button>' +

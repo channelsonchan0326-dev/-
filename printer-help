@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>藍牙列印設定｜口味研究室</title>
+  <style>
+    * { box-sizing: border-box; letter-spacing: 0; }
+    body { margin: 0; color: #25201e; background: #faf8f5; font: 1rem/1.8 system-ui, "Microsoft JhengHei", sans-serif; }
+    header, main, footer { max-width: 760px; margin: auto; padding: 24px; }
+    header { display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid #d5dfe0; }
+    header strong { font-size: 1.2rem; }
+    h1 { font-size: 1.8rem; margin: 0; }
+    h2 { font-size: 1.2rem; margin: 0 0 10px; }
+    p { margin: 10px 0; }
+    a { color: #195768; overflow-wrap: anywhere; }
+    section { border-bottom: 1px solid #d5dfe0; padding: 24px 0; }
+    li { margin-bottom: 16px; padding-left: 4px; }
+    ol { padding-left: 24px; }
+    .download { display: inline-flex; padding: 10px 16px; color: white; background: #285b67; border-radius: 8px; font-weight: 650; text-decoration: none; }
+    a:focus-visible { outline: 3px solid #9e3e24; outline-offset: 4px; }
+    .note { color: #685954; }
+    footer { font-size: .875rem; }
+  </style>
+</head>
+<body>
+  <header><strong>口味研究室</strong><a href="staff.html">回店員看板</a></header>
+  <main>
+    <h1>XP-Q90EC 藍牙列印設定</h1>
+    <p>Android 平板 · RawBT · 58 mm 紙捲</p>
+    <section aria-labelledby="install-title">
+      <h2 id="install-title">第一次設定</h2>
+      <ol>
+        <li>印表機裝好紙、接上電源。確認你的 XP-Q90EC 是支援藍牙的版本。</li>
+        <li>在平板的 Android 藍牙設定中，搜尋並配對印表機。若需要 PIN 碼，請查看機身標籤或該機型手冊。</li>
+        <li>從 Google Play 安裝 RawBT，允許連接附近裝置／藍牙所需的權限。</li>
+        <li>打開 RawBT，新增藍牙印表機並選擇剛才配對的 XP-Q90EC，設為預設印表機。使用 ESC/POS，紙寬 58 mm（可列印寬度 48 mm／384 點）。</li>
+        <li>先在 RawBT 中列印測試頁，確認會出紙，再回到 Chrome 的店員看板。</li>
+      </ol>
+      <a class="download" href="https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter" target="_blank" rel="noopener">前往 Google Play 安裝 RawBT</a>
+      <p class="note">RawBT 免費版可能在列印內容上加入提示文字；不需要先購買就能測試。App 內的設定名稱可能依版本不同。</p>
+    </section>
+    <section aria-labelledby="flow-title">
+      <h2 id="flow-title">店員操作</h2>
+      <ol>
+        <li>以 Android Chrome 打開店員看板並登入，保持畫面開啟。新訂單約每 5 秒更新一次；切回畫面時也會重新同步。</li>
+        <li>按「查看訂單」，核對客製內容與製作單預覽。此時不會列印。</li>
+        <li>按「確認列印」才會開啟 RawBT 送印。若 Android 再詢問是否開啟 App，請確認；出紙後回到店員看板。</li>
+        <li>確認實際出紙後再製作，完成飲品後按「標記完成」。列印不會自動改變訂單狀態。</li>
+      </ol>
+      <p>若需要補印，先檢查印表機與 RawBT 佇列，再勾選補印確認、按「確認列印」。不要連續重試，以免恢復連線後重複出紙。</p>
+    </section>
+    <section aria-labelledby="problem-title">
+      <h2 id="problem-title">沒有出紙時</h2>
+      <p>如果按確認後來到此頁，可能是未安裝 RawBT、Chrome 無法啟動 App，或未在 Android 上操作。先完成上方設定，再從店員看板重新檢查訂單。</p>
+      <p>若 RawBT 已開啟但沒有出紙，檢查電源、紙捲、藍牙連線、預設印表機及待印佇列。先確認 RawBT 測試頁能正常列印。</p>
+      <p>網站只能記錄「此瀏覽器曾要求開啟 RawBT」，不能得知印表機是否確實出紙。這項紀錄只保留最近 300 張，不會同步到其他裝置，清除瀏覽器資料也會消失。請指定一台平板負責列印，避免不同店員重複送印。</p>
+      <p>背景分頁或螢幕鎖定時，Android 可能暫停同步。本版不是背景推播；回到看板會補抓訂單，且仍不會自動列印。</p>
+    </section>
+    <section aria-labelledby="address-title">
+      <h2 id="address-title">網站入口</h2>
+      <p><a href="https://channelsonchan0326-dev.github.io/-/">顧客點餐頁</a> · <a href="https://channelsonchan0326-dev.github.io/-/staff.html">店員看板</a></p>
+      <p>顧客用自己的手機時，請開上方的公開點餐網址。127.0.0.1 只代表該裝置自己，不能當成跨裝置的點餐網址。</p>
+    </section>
+  </main>
+  <footer>
+    <p>技術參考：<a href="https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter">RawBT 官方上架頁</a> · <a href="https://github.com/402d/rawbt.402d.ru/blob/master/app2/index.php">RawBT 作者網頁範例</a> · <a href="https://www.xprinter.net/product/570.html?productCateId=29">XP-Q90EC 官方規格</a></p>
+  </footer>
+</body>
+</html>

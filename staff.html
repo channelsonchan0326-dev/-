@@ -95,6 +95,35 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
   #board-error { padding: 12px 0; }
   #load-more { margin-top: 22px; }
   .orders .empty { grid-column: 1 / -1; }
+  .order-summary { margin: 0 0 10px; color: var(--muted); }
+  .print-note { margin: 0; color: #355c65; font-size: .875rem; }
+  .detail-dialog { width: min(880px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: white; }
+  .detail-dialog::backdrop { background: rgb(0 0 0 / .5); }
+  .detail-shell { display: flex; flex-direction: column; max-height: calc(100dvh - 28px); }
+  .detail-header { display: flex; justify-content: space-between; gap: 16px; align-items: start; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+  .detail-header h2 { margin: 0; font-size: 1.4rem; overflow-wrap: anywhere; }
+  .detail-header p { margin: 4px 0 0; color: var(--muted); font-size: .875rem; }
+  .detail-header button { flex-shrink: 0; }
+  .detail-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; padding: 22px; overflow-y: auto; overscroll-behavior: contain; }
+  .detail-content h3 { margin: 0 0 12px; font-size: 1.2rem; }
+  .detail-content dl div { grid-template-columns: minmax(72px, .7fr) minmax(0, 1fr); }
+  .receipt-preview { margin: 0; padding: 14px; background: #f0f3f4; }
+  .receipt-preview figcaption { margin-bottom: 12px; color: #40565c; font-size: .875rem; }
+  #receipt-image { width: 100%; max-width: 384px; height: auto; display: block; margin: auto; background: white; }
+  .detail-footer { padding: 14px 22px 18px; border-top: 1px solid var(--line); background: white; }
+  .detail-footer p { margin: 0 0 10px; font-size: .875rem; overflow-wrap: anywhere; }
+  #print-error { color: var(--danger); }
+  .reprint-option { display: flex; align-items: start; gap: 10px; padding: 8px 0; margin-bottom: 8px; font-size: .9rem; }
+  .reprint-option input { width: 20px; height: 20px; margin: 3px 0; flex-shrink: 0; accent-color: var(--accent); }
+  .detail-buttons { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  #confirm-print { min-width: 150px; min-height: 48px; }
+  .detail-buttons a { color: #285b67; }
+  body:has(.detail-dialog[open]) { overflow: hidden; }
+  @media (max-width: 620px) {
+    .detail-content { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 16px; }
+    .detail-header, .detail-footer { padding: 14px 16px; }
+    #receipt-image { max-width: 300px; }
+  }
   </style>
 </head>
 <body>
@@ -135,6 +164,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
         <button class="filter" type="button" data-filter="done" role="tab" aria-selected="false">已完成</button>
       </div>
       <div class="toolbar-actions">
+        <a class="link-button" href="printer-help.html" target="_blank" rel="noopener">藍牙列印設定</a>
         <button class="button ghost" type="button" data-action="clear-done">清掉已完成</button>
       </div>
     </section>
@@ -148,8 +178,38 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
     <span>口味研究室 · 店員版</span>
     <span>口味與訂單狀態同步更新</span>
   </footer>
+  <dialog id="order-detail" class="detail-dialog" aria-labelledby="detail-title">
+    <div class="detail-shell">
+      <header class="detail-header">
+        <div><h2 id="detail-title">訂單明細</h2><p id="detail-meta"></p></div>
+        <button id="close-detail" class="button ghost" type="button" autofocus>關閉</button>
+      </header>
+      <div class="detail-content">
+        <section aria-labelledby="detail-drink"><h3 id="detail-drink"></h3><dl id="detail-rows"></dl></section>
+        <figure class="receipt-preview">
+          <figcaption>XP-Q90EC · 58 mm 製作單預覽</figcaption>
+          <p id="preview-state" role="status">正在準備預覽…</p>
+          <canvas id="receipt-image" width="384" height="8" role="img" aria-label="製作單預覽，內容與訂單明細相同" hidden></canvas>
+        </figure>
+      </div>
+      <footer class="detail-footer">
+        <p id="print-status" role="status"></p>
+        <p id="print-error" role="alert" hidden></p>
+        <label id="reprint-option" class="reprint-option" hidden>
+          <input id="confirm-reprint" type="checkbox">
+          <span>此裝置曾要求列印。我已檢查出紙狀況，確定要補印。</span>
+        </label>
+        <div class="detail-buttons">
+          <a href="printer-help.html" target="_blank" rel="noopener">RawBT／藍牙設定</a>
+          <button id="confirm-print" class="button primary" type="button" disabled>確認列印</button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
   <script src="config.js"></script>
   <script src="api.js"></script>
-  <script src="staff.js?v=20260913-123"></script>
+  <script src="receipt-printer-encoder-3.0.3.js"></script>
+  <script src="staff-print.js?v=20260913-bt1"></script>
+  <script src="staff.js?v=20260913-bt1"></script>
 </body>
 </html>

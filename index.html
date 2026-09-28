@@ -150,6 +150,42 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
   .choice-box, .scale-box, .button { transition: background-color .15s, border-color .15s; }
 }
 
+/* Customer illustrations are inline SVG: no image host or icon-font dependency. */
+.choice-box { position: relative; }
+.choice input { z-index: 1; }
+.choice-art { display: flex; align-items: center; justify-content: center; height: 144px; margin: -8px 0 15px; pointer-events: none; }
+.choice-art svg { display: block; width: 100%; max-width: 172px; height: 100%; }
+.choice-art svg[data-illustration="black-coffee"] { max-width: 224px; }
+.choice-copy { display: block; min-width: 0; }
+.choice.has-art .choice-title { padding-right: 0; }
+.choice.has-art .choice-box::after { z-index: 0; }
+.scale-meter { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 22px; margin-bottom: 3px; }
+.scale-meter i { display: block; width: 8px; border: 1px solid #c8b6a7; border-radius: 3px 3px 1px 1px; background: #f0e8e0; }
+.scale-meter i:nth-child(1) { height: 10px; }
+.scale-meter i:nth-child(2) { height: 16px; }
+.scale-meter i:nth-child(3) { height: 22px; }
+.scale-meter i.filled { border-color: #9e5c3f; background: #b46e4b; }
+.section-art { display: inline-flex; vertical-align: middle; margin-right: 9px; }
+.section-art svg { width: 40px; height: 40px; display: block; }
+.select-heading { display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.select-heading svg { width: 44px; height: 44px; flex: 0 0 44px; }
+.drink-label.with-art { display: flex; align-items: center; gap: 18px; }
+.drink-label.with-art > svg { width: 88px; height: 88px; flex: 0 0 88px; }
+@media (max-width: 720px) {
+  .choice-art { height: 116px; margin: -5px 0 12px; }
+  .choice-art svg { max-width: 142px; }
+  .choice-art svg[data-illustration="black-coffee"] { max-width: 188px; }
+  .choices.three .has-art .choice-box { display: flex; align-items: center; gap: 16px; padding: 14px 16px; }
+  .choices.three .choice-art { flex: 0 0 80px; width: 80px; height: 80px; margin: 0; }
+  .choices.three .choice-copy { padding-right: 12px; }
+  .drink-label.with-art { gap: 12px; padding: 12px 16px; }
+  .drink-label.with-art > svg { width: 70px; height: 70px; flex-basis: 70px; }
+}
+@media (max-width: 370px) {
+  .choices .has-art .choice-box { display: flex; align-items: center; gap: 12px; padding: 14px; }
+  .choices .choice-art { flex: 0 0 94px; width: 94px; height: 88px; margin: 0; }
+  .choices .choice-copy { padding-right: 8px; }
+}
 </style>
 </head>
 <body>
@@ -218,14 +254,65 @@ const availableDrinks = () => Object.keys(DRINKS).filter(id => state.mode === 'd
 const acidOrBitter = () => LEVELS[state.direction === 'acid' ? 'acid' : 'bitter'];
 const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// These drawings are decorative. The existing visible labels remain the
+// accessible names and the only source of meaning for each selection.
+function illustration(kind) {
+  const latte = '<ellipse cx="63" cy="103" rx="45" ry="8" fill="#dfcbb8" stroke="none"/><path d="M94 58h9c18 0 16 27-8 28" fill="#fffaf3"/><path d="M27 49h68v27c0 17-14 26-34 26S27 93 27 76Z" fill="#fdf7eb"/><path d="M34 74c3 14 14 21 29 21" fill="none" stroke="#dfcbb8"/><ellipse cx="61" cy="49" rx="34" ry="13" fill="#e0b489"/><ellipse cx="61" cy="49" rx="28" ry="9" fill="#b8774b" stroke="none"/><path d="M61 54C43 50 42 42 50 41c5 0 9 4 11 7 2-3 6-7 11-7 8-1 9 9-11 16Z" fill="#fff5dc" stroke="none"/><path d="M61 48v11" stroke="#fff5dc" stroke-width="2"/><path d="M46 30c-7-8 8-10 2-18M68 27c-7-8 8-10 2-18" stroke="#ba9e88" fill="none"/>';
+  const americano = '<ellipse cx="62" cy="106" rx="42" ry="7" fill="#dfcbb8" stroke="none"/><path d="M86 49h12c15 0 15 27-7 30" fill="#faf5eb"/><path d="M27 42h65l-7 47c-1 10-11 15-25 15s-23-5-25-15Z" fill="#f5e9d9"/><path d="M35 61h49l-4 27c-1 6-8 10-20 10s-18-4-19-10Z" fill="#5d382a" stroke="none"/><ellipse cx="59" cy="43" rx="32" ry="11" fill="#4a2b22"/><path d="M40 40c9-4 21-5 33-2" stroke="#ad7a54" fill="none"/><path d="M45 25c-6-7 7-9 2-16M66 23c-6-7 7-9 2-16" stroke="#ba9e88" fill="none"/>';
+  const pourover = '<ellipse cx="65" cy="113" rx="41" ry="6" fill="#dfcbb8" stroke="none"/><path d="M51 67h30l6 14 13 20c3 5-2 10-9 10H40c-8 0-12-5-9-10l14-20Z" fill="#f4eade"/><path d="M90 81h7c21 0 18 23 1 23" fill="none"/><path d="M43 88h45l9 15c1 2-2 3-6 3H40c-4 0-6-1-5-3Z" fill="#78503a" stroke="none"/><path d="M28 25h76L81 62H52Z" fill="#fffaf1"/><ellipse cx="66" cy="25" rx="38" ry="9" fill="#d4b18c"/><ellipse cx="66" cy="25" rx="28" ry="5" fill="#68412e" stroke="none"/><path d="m42 35 15 20m0-18 7 20m7-20-1 20m16-22-10 20" stroke="#c6b09a"/><path d="M47 64h38M66 69v5" stroke="#8d654a"/>';
+  const sugar = '<path d="m29 72 24-14 26 15-25 15Z" fill="#fffaf0"/><path d="M29 72v24l25 15V88Z" fill="#e6d7c6"/><path d="m54 88 25-15v24l-25 14Z" fill="#f5ead9"/><path d="m58 39 21-12 23 13-22 13Z" fill="#fffaf0"/><path d="M58 39v21l22 14V53Z" fill="#e6d7c6"/><path d="m80 53 22-13v21L80 74Z" fill="#f5ead9"/>';
+  const hazelnuts = '<path d="M47 75c-8-1-15 7-15 19 0 11 12 18 18 18 8 0 17-8 16-19S56 75 47 75Z" fill="#b57a49"/><path d="M34 84c7-8 20-8 28 0" fill="none"/><path d="M51 84c-4 8-5 16-3 24" stroke="#e7bd8e" fill="none"/><path d="M71 97c0-10 10-19 21-17 8 2 13 11 10 20s-12 14-19 12-12-8-12-15Z" fill="#ecd1a7"/><path d="M88 87c-4 5-7 12-6 19" fill="none" stroke="#b88856"/>';
+  const bottle = '<path d="M47 22h32v15l7 12v53c0 6-4 10-10 10H50c-6 0-10-4-10-10V49l7-12Z" fill="#e0ae6d"/><path d="M48 14h30v12H48Z" fill="#f8edd8"/><path d="M50 13V8h37v6M87 8v10" fill="none"/><path d="M46 53h34v29H46Z" fill="#fff5df" stroke="none"/><path d="M56 39v11" stroke="#fff3d9" fill="none"/>';
+  const chocolate = '<g transform="rotate(-12 57 68)"><rect x="26" y="29" width="57" height="73" rx="5" fill="#6e4331"/><path d="M34 37h17v22H34Zm24 0h17v22H58ZM34 67h17v25H34Zm24 0h17v25H58Z" fill="#976040" stroke="#503222"/></g><path d="m71 91 22-12 16 10-23 14Z" fill="#d5a461"/><path d="M71 91v13l15 10v-11Zm15 12 23-14v13l-23 12Z" fill="#bb8043"/>';
+  const fruit = '<circle cx="52" cy="72" r="33" fill="#e6a856"/><circle cx="52" cy="72" r="26" fill="#f7d28e" stroke="#fff0c9" stroke-width="3"/><path d="M52 47v50M27 72h50M34 54l36 36M34 90l36-36" stroke="#fff0c9" stroke-width="3"/><path d="M46 35c1-13 14-21 27-17-2 11-13 20-27 17Z" fill="#829574"/><g fill="#8f6372"><circle cx="91" cy="86" r="11"/><circle cx="105" cy="97" r="10"/><circle cx="84" cy="105" r="11"/></g><path d="m90 81 2 4 4-1m8 9 2 3 3-1m-26 4 2 3 3-1" stroke="#dfbcca" fill="none"/>';
+  const iced = '<ellipse cx="66" cy="112" rx="31" ry="5" fill="#dfcbb8" stroke="none"/><path d="m44 17 7-8 26 58" fill="none" stroke="#b2704d" stroke-width="5"/><path d="M33 31h66l-8 73c-1 6-8 9-25 9s-24-3-25-9Z" fill="#e6efeb"/><path d="m42 51 6 52c11 5 27 5 36 0l6-52Z" fill="#a9714e" stroke="none"/><path d="m47 42 18-1 2 18-17 2Zm23-1 18 5-4 17-18-4Z" fill="#d9e9e4" stroke="#7c9d99"/><path d="M39 32h54" fill="none" stroke="#fdfbf4"/>';
+  const milkJug = '<path d="M37 29h48v12l9 16v45c0 6-5 9-11 9H46c-8 0-12-4-12-11V58l6-16Z" fill="#fffaf0"/><path d="M85 58h9c22 0 23 30 1 30" fill="none"/><path d="M42 30h32M44 47h31" fill="none" stroke="#c1ac92"/><path d="M34 65h60v35c0 8-6 11-13 11H46c-8 0-12-4-12-11Z" fill="#eadac0" stroke="none"/><path d="M34 65v35c0 8 4 11 12 11h35c7 0 13-3 13-11V65" fill="none"/>';
+  let art = '', wide = false;
+  switch (kind) {
+    case 'latte': art = latte; break;
+    case 'americano': art = americano; break;
+    case 'pourover': art = pourover; break;
+    case 'black-coffee': wide = true; art = `<g transform="translate(1 14) scale(.87)">${americano}</g><g transform="translate(108 6) scale(.87)">${pourover}</g>`; break;
+    case 'sugar': case 'plain': art = sugar; break;
+    case 'no-sugar': art = sugar + '<circle cx="66" cy="66" r="47" fill="none" stroke="#a65b43" stroke-width="4"/><path d="m32 100 68-68" stroke="#fffaf3" stroke-width="9"/><path d="m32 100 68-68" stroke="#a65b43" stroke-width="4"/>'; break;
+    case 'hazelnut': art = `<g transform="translate(-5 0) scale(.88)">${bottle}</g>${hazelnuts}`; break;
+    case 'caramel': art = bottle + '<path d="m80 90 19-10 17 9-19 12Z" fill="#d29b50"/><path d="M80 90v13l17 12v-14Zm17 11 19-12v12l-19 14Z" fill="#b9783d"/>'; break;
+    case 'bitter': art = chocolate; break;
+    case 'acid': art = fruit; break;
+    case 'standard': art = americano; break;
+    case 'cold': art = iced; break;
+    case 'hot': art = americano; break;
+    case 'ice': art = '<g fill="#d7e8e6" stroke="#668782"><path d="m21 54 33-12 28 13-34 14Z"/><path d="M21 54v33l27 16V69Zm27 15 34-14v32l-34 16Z"/><path d="m66 26 24-8 21 11-25 9Z"/><path d="M66 26v23l20 13V38Zm20 12 25-9v23L86 62Z"/></g>'; break;
+    case 'milk': art = milkJug; break;
+    default: return '';
+  }
+  const backdrop = wide ? '<ellipse cx="112" cy="70" rx="105" ry="49" fill="#f5ecdf"/>' : '<circle cx="64" cy="68" r="49" fill="#f5ecdf"/>';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${wide ? 224 : 128} 128" aria-hidden="true" focusable="false" data-illustration="${kind}">${backdrop}<g stroke="#624331" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${art}</g></svg>`;
+}
+function choiceIllustration(name, value) {
+  const map = {
+    milk: { yes: 'latte', no: 'black-coffee' },
+    drink: { latte: 'latte', americano: 'americano', pourover: 'pourover' },
+    sugar: { yes: 'sugar', no: 'no-sugar' },
+    sauce: { plain: 'plain', hazelnut: 'hazelnut', caramel: 'caramel' },
+    direction: { standard: 'standard', bitter: 'bitter', acid: 'acid' },
+    temp: { '冰飲': 'cold', '熱飲': 'hot' }
+  };
+  return illustration(map[name]?.[value]);
+}
+function levelMeter(level) {
+  return `<span class="scale-meter" aria-hidden="true">${[1, 2, 3].map(n => `<i class="${n <= level ? 'filled' : ''}"></i>`).join('')}</span>`;
+}
 function radio(name, value, title, description = '') {
-  return `<label class="choice"><input type="radio" name="${name}" value="${value}" ${state[name] === value ? 'checked' : ''}><span class="choice-box"><span class="choice-title">${title}</span>${description ? `<span class="choice-description">${description}</span>` : ''}</span></label>`;
+  const art = choiceIllustration(name, value);
+  return `<label class="choice${art ? ' has-art' : ''}"><input type="radio" name="${name}" value="${value}" ${state[name] === value ? 'checked' : ''}><span class="choice-box">${art ? `<span class="choice-art">${art}</span>` : ''}<span class="choice-copy"><span class="choice-title">${title}</span>${description ? `<span class="choice-description">${description}</span>` : ''}</span></span></label>`;
 }
 function group(legend, content, columns = '', visibleLegend = false) {
   return `<fieldset><legend${visibleLegend ? '' : ' class="sr-only"'}>${legend}</legend><div class="choices ${columns}">${content}</div></fieldset>`;
 }
 function scale(name, level) {
-  return `<fieldset class="section-gap"><legend>${level.title}程度</legend><p class="hint" id="${name}-hint">${level.hint}</p><div class="scale-grid">${TASTE_LEVELS.map(n => `<label class="scale-option"><input type="radio" name="${name}" value="${n}" ${state[name] === n ? 'checked' : ''} aria-label="${n - 1}，${level.full[n - 1]}" aria-describedby="${name}-hint"><span class="scale-box"><span class="scale-number">${n - 1}</span><span class="scale-label">${level.short[n - 1]}</span></span></label>`).join('')}</div><div class="scale-ends"><span>${level.left}</span><span>${level.right}</span></div><output class="selected-text" id="${name}-description" aria-live="polite">目前選擇：${state[name] - 1} · ${level.full[state[name] - 1]}</output></fieldset>`;
+  const artKind = name === 'sweet' ? 'sugar' : state.direction === 'acid' ? 'acid' : 'bitter';
+  return `<fieldset class="section-gap"><legend><span class="section-art">${illustration(artKind)}</span>${level.title}程度</legend><p class="hint" id="${name}-hint">${level.hint}</p><div class="scale-grid">${TASTE_LEVELS.map(n => `<label class="scale-option"><input type="radio" name="${name}" value="${n}" ${state[name] === n ? 'checked' : ''} aria-label="${n - 1}，${level.full[n - 1]}" aria-describedby="${name}-hint"><span class="scale-box">${levelMeter(n - 1)}<span class="scale-number">${n - 1}</span><span class="scale-label">${level.short[n - 1]}</span></span></label>`).join('')}</div><div class="scale-ends"><span>${level.left}</span><span>${level.right}</span></div><output class="selected-text" id="${name}-description" aria-live="polite">目前選擇：${state[name] - 1} · ${level.full[state[name] - 1]}</output></fieldset>`;
 }
 function sugarControls() {
   let html = group('需要加糖嗎？', radio('sugar', 'no', '不加糖', '不額外加糖或風味糖醬。') + radio('sugar', 'yes', '要糖', '選擇糖的口味與甜度。'));
@@ -239,7 +326,7 @@ function directionControls(includeStandard = false) {
   return group('咖啡風味方向', (includeStandard ? radio('direction', 'standard', '店家標準', '依店家原本的風味製作。') : '') + radio('direction', 'bitter', '偏苦', '巧克力、堅果、焦糖般的風味。') + radio('direction', 'acid', '偏酸', '柑橘、熱帶水果、莓果般的風味。'), includeStandard ? 'three' : '') + '<p class="note">這些是咖啡本身的風味描述；風味糖醬需另外選擇。</p>';
 }
 function selectControl(name, title, options) {
-  return `<label>${title}<select name="${name}">${options.map(value => `<option value="${value}" ${state[name] === value ? 'selected' : ''}>${value}</option>`).join('')}</select></label>`;
+  return `<label><span class="select-heading">${illustration(name === 'ice' ? 'ice' : 'milk')}${title}</span><select name="${name}">${options.map(value => `<option value="${value}" ${state[name] === value ? 'selected' : ''}>${value}</option>`).join('')}</select></label>`;
 }
 function drinkChoices() {
   return group('選擇飲品', availableDrinks().map(id => radio('drink', id, DRINKS[id].name, DRINKS[id].description)).join(''), state.mode === 'direct' ? 'three' : '');
@@ -249,7 +336,7 @@ function finishView() {
   if (state.mode === 'guided' && state.milk === 'no') html += drinkChoices();
   else {
     const drink = DRINKS[state.drink];
-    html += `<div class="drink-label"><h2>${drink.name}</h2><p>${drink.description}</p></div>`;
+    html += `<div class="drink-label with-art">${illustration(state.drink)}<div><h2>${drink.name}</h2><p>${drink.description}</p></div></div>`;
   }
   html += `<div class="section-gap">${group('冷飲或熱飲', radio('temp', '冰飲', '冰飲') + radio('temp', '熱飲', '熱飲'), '', true)}</div>`;
   const selects = (state.temp === '冰飲' ? selectControl('ice', '冰量', ['去冰', '微冰', '少冰', '標準冰']) : '') + (state.milk === 'yes' ? selectControl('milkAmount', '奶量', ['少奶', '標準奶量', '多奶']) : '');

@@ -2,6 +2,9 @@ const $ = id => document.getElementById(id);
 let token = '';
 try { token = sessionStorage.getItem('coffeeStaffToken') || ''; } catch {}
 let currentFilter = 'new';
+let currentPeriod = 'today';
+let businessInfo = null;
+let startDayRequested = false;
 let orders = [];
 let counts = { total: 0, fresh: 0, done: 0 };
 let nextPage = null;
@@ -35,7 +38,7 @@ function rememberPrintAttempt(id) {
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function formatTime(value) {
-  return new Intl.DateTimeFormat('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+  return new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 function formatTasteValue(key, value) {
   if (!['甜度', '酸味程度', '苦味程度'].includes(key) || typeof value !== 'string') return value;
@@ -60,6 +63,15 @@ function render() {
   $('new-count').textContent = counts.fresh;
   $('done-count').textContent = counts.done;
   $('total-count').textContent = counts.total;
+  document.querySelector('.stats').setAttribute('aria-label', currentPeriod === 'today' ? '今日訂單統計' : '全部日期訂單統計');
+  if (businessInfo) {
+    $('business-date').textContent = (currentPeriod === 'today' ? '今日訂單' : '查看全部日期') +
+      ' · ' + businessInfo.date.replaceAll('-', '/') + ' · 下一張 ' + businessInfo.nextNumber;
+  }
+  $('previous-orders').hidden = currentPeriod !== 'today' || !businessInfo?.previousFresh;
+  $('previous-count').textContent = businessInfo?.previousFresh ? '另有 ' + businessInfo.previousFresh + ' 張較早的待製作訂單。' : '';
+  document.querySelector('[data-action="start-day"]').setAttribute('aria-pressed', String(currentPeriod === 'today'));
+  document.querySelector('[data-period="all"]').setAttribute('aria-pressed', String(currentPeriod === 'all'));
   document.title = counts.fresh ? '(' + counts.fresh + ') 新訂單｜店員看板' : '店員看板｜口味研究室';
   document.querySelectorAll('[data-filter]').forEach(button => {
     const active = button.dataset.filter === currentFilter;
@@ -90,6 +102,10 @@ function logout(message = '') {
   viewVersion++;
   orders = [];
   counts = { total: 0, fresh: 0, done: 0 };
+  currentPeriod = 'today';
+  businessInfo = null;
+  startDayRequested = false;
+  $('day-message').hidden = true;
   nextPage = null;
   lastSync = null;
   try { sessionStorage.removeItem('coffeeStaffToken'); } catch {}
@@ -110,22 +126,36 @@ async function refresh(append = false) {
     let cursor = null;
     let data;
     let pagesRead = 0;
+    let pagePeriod = currentPeriod;
     const byId = new Map();
     do {
-      data = await CoffeeAPI.request('/api/staff/orders?status=' + currentFilter + (cursor ? '&before=' + cursor : ''), { token });
+      data = await CoffeeAPI.request('/api/staff/orders?status=' + currentFilter + '&day=' + encodeURIComponent(pagePeriod) + (cursor ? '&before=' + cursor : ''), { token });
       if (requestRevision !== revision || requestVersion !== viewVersion) return;
+      if (!data.businessDay || !data.period) throw new Error('每日編號功能尚未同步，請稍後重新整理。');
+      if (currentPeriod === 'today' && data.period !== data.businessDay.date) {
+        loadedPages = 1;
+        viewVersion++;
+        return;
+      }
       data.orders.forEach(order => byId.set(order.id, order));
+      pagePeriod = data.period;
       cursor = data.next;
       pagesRead++;
     } while (cursor && pagesRead < pageCount);
     loadedPages = pagesRead;
     orders = [...byId.values()];
     counts = data.counts;
+    businessInfo = data.businessDay;
     nextPage = data.next;
     lastSync = new Date();
     $('updated').textContent = '已連線 · 最後同步 ' + lastSync.toLocaleTimeString('zh-TW');
     setError('');
     render();
+    if (startDayRequested) {
+      $('day-message').textContent = '已切換至今天，下一張編號為 ' + businessInfo.nextNumber + '。舊訂單保留，今日已發出的號碼不會重新編排。';
+      $('day-message').hidden = false;
+      startDayRequested = false;
+    }
     if (detailOrder) {
       const latest = orders.find(order => order.id === detailOrder.id);
       detailUnavailable = !latest;
@@ -156,14 +186,14 @@ async function mutate(action, id) {
   if (!['done', 'restore', 'delete', 'clear-done'].includes(action)) return;
   if (mutating || !token) return;
   if (action === 'delete' && !window.confirm('確定刪除這張訂單？')) return;
-  if (action === 'clear-done' && !window.confirm('確定清掉所有已完成訂單？')) return;
+  if (action === 'clear-done' && !window.confirm(currentPeriod === 'today' ? '確定清掉今天的已完成訂單？已發出的號碼不會重用。' : '確定清掉所有日期的已完成訂單？')) return;
   mutating = true;
   let mutationError = '';
   revision++;
   document.querySelectorAll('#board button').forEach(button => button.disabled = true);
   setError('');
   try {
-    const path = action === 'clear-done' ? '/api/staff/orders/completed' : '/api/staff/orders/' + encodeURIComponent(id);
+    const path = action === 'clear-done' ? '/api/staff/orders/completed?day=' + currentPeriod : '/api/staff/orders/' + encodeURIComponent(id);
     const deleting = action === 'delete' || action === 'clear-done';
     await CoffeeAPI.request(path, { method: deleting ? 'DELETE' : 'PATCH',
       token, body: deleting ? undefined : { status: action === 'done' ? 'done' : 'new' } });
@@ -304,7 +334,23 @@ window.addEventListener('storage', event => {
   if (token) render();
   updatePrintControls();
 });
+function switchPeriod(period, filter = currentFilter, startDay = false) {
+  if (!token || mutating) return;
+  closeDetail();
+  currentPeriod = period;
+  currentFilter = filter;
+  startDayRequested = startDay;
+  $('day-message').hidden = true;
+  viewVersion++;
+  orders = [];
+  nextPage = null;
+  loadedPages = 1;
+  $('orders').innerHTML = '<p>正在讀取訂單…</p>';
+  refresh();
+}
 document.addEventListener('click', event => {
+  const period = event.target.closest('[data-period]');
+  if (period && !period.disabled) { switchPeriod(period.dataset.period); return; }
   const filter = event.target.closest('[data-filter]');
   if (filter && !filter.disabled) {
     currentFilter = filter.dataset.filter;
@@ -322,6 +368,8 @@ document.addEventListener('click', event => {
   const { action, id } = button.dataset;
   if (action === 'refresh') refresh();
   else if (action === 'logout') logout();
+  else if (action === 'start-day') switchPeriod('today', 'new', true);
+  else if (action === 'previous-pending') switchPeriod('all', 'new');
   else if (action === 'view') openDetail(id);
   else mutate(action, id);
 });

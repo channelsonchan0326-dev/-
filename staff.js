@@ -57,7 +57,7 @@ function orderCard(order) {
     '<button class="button primary" type="button" data-action="view" data-id="' + escapeHTML(order.id) + '">查看訂單</button>' +
     '<button class="button ' + (done ? 'ghost' : 'done') + '" type="button" data-action="' + (done ? 'restore' : 'done') +
     '" data-id="' + escapeHTML(order.id) + '">' + (done ? '改回待製作' : '標記完成') + '</button>' +
-    '<button class="button danger" type="button" data-action="delete" data-id="' + escapeHTML(order.id) + '">刪除</button></div></article>';
+    '<button class="button danger" type="button" data-action="delete" data-id="' + escapeHTML(order.id) + '">取消／作廢</button></div></article>';
 }
 function render() {
   $('new-count').textContent = counts.fresh;
@@ -185,8 +185,8 @@ async function refresh(append = false) {
 async function mutate(action, id) {
   if (!['done', 'restore', 'delete', 'clear-done'].includes(action)) return;
   if (mutating || !token) return;
-  if (action === 'delete' && !window.confirm('確定刪除這張訂單？')) return;
-  if (action === 'clear-done' && !window.confirm(currentPeriod === 'today' ? '確定清掉今天的已完成訂單？已發出的號碼不會重用。' : '確定清掉所有日期的已完成訂單？')) return;
+  if (action === 'delete' && !window.confirm('確定取消或作廢這張訂單？此筆會排除在有效杯數之外，紀錄仍會保留。')) return;
+  if (action === 'clear-done' && !window.confirm(currentPeriod === 'today' ? '將今天的已完成訂單收起？統計及編號紀錄仍會保留。' : '將全部日期的已完成訂單收起？統計及編號紀錄仍會保留。')) return;
   mutating = true;
   let mutationError = '';
   revision++;

@@ -67,13 +67,56 @@
     .hour-fill { display: block; width: 100%; background: #a86246; border-radius: 3px 3px 0 0; }
     .scroll { overflow-x: auto; overscroll-behavior-x: contain; }
     .section-space { margin-bottom: 18px; }
-    .preference-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-    .preference { border-top: 3px solid #c8ae9a; }
-    .preference .hint { margin: 4px 0 12px; }
-    .preference ul { list-style: none; margin: 0; padding: 0; }
-    .preference li { display: flex; align-items: start; justify-content: space-between; gap: 12px; padding-block: 9px; border-top: 1px solid #eee6df; font-size: .875rem; }
-    .preference li span:first-child { overflow-wrap: anywhere; }
-    .preference li span:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .analysis-panel { padding: 0; overflow: hidden; }
+    .analysis-heading { padding: 22px 24px 18px; border-bottom: 1px solid var(--line); }
+    .analysis-heading .hint { margin-bottom: 0; }
+    .analysis-content { padding: 18px 24px 24px; }
+    .analysis-tabs { display: flex; gap: 4px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .analysis-tab { min-height: 44px; padding: 8px 15px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--muted); font-weight: 650; }
+    .analysis-tab[aria-pressed="true"] { background: var(--dark); color: white; border-color: var(--dark); }
+    .analysis-tab:hover { border-color: #c9b3a3; }
+    .analysis-chart-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 20px; }
+    .analysis-chart-head h3 { font-size: 1.1rem; }
+    .analysis-chart-head > div:first-child { flex: 1; min-width: 160px; }
+    .analysis-chart-head .hint { margin-bottom: 0; }
+    .unit-switch { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 7px; gap: 3px; background: #faf8f5; }
+    .unit-button { min-height: 38px; padding: 6px 14px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: .875rem; font-weight: 650; }
+    .unit-button[aria-pressed="true"] { background: white; color: var(--accent); box-shadow: 0 1px 4px #2c201b22; }
+    .analysis-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 28px; }
+    .analysis-figure { margin: 0; min-width: 0; }
+    .chart-scroll { overflow-x: auto; padding-top: 4px; }
+    .column-chart { min-width: 0; }
+    .axis-unit { font-size: .875rem; color: var(--muted); margin: 0 0 14px; }
+    .chart-body { display: grid; grid-template-columns: var(--axis-width, 48px) minmax(0, 1fr); grid-template-rows: 240px auto; column-gap: 8px; }
+    .chart-ticks { position: relative; grid-column: 1; grid-row: 1; color: var(--muted); font-size: .875rem; font-variant-numeric: tabular-nums; }
+    .chart-tick { position: absolute; right: 0; transform: translateY(50%); line-height: 1; }
+    .chart-plot { position: relative; grid-column: 2; grid-row: 1; border-bottom: 1px solid #bcaea3; }
+    .chart-gridline { position: absolute; width: 100%; border-top: 1px dashed #e4dbd3; }
+    .chart-columns { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--columns), minmax(0, 1fr)); gap: 12px; }
+    .chart-column { position: relative; display: flex; align-items: end; justify-content: center; min-width: 0; }
+    .chart-column-value { position: absolute; left: 50%; transform: translate(-50%, -7px); white-space: nowrap; line-height: 1.2; font-size: .875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .chart-column-bar { width: 58%; max-width: 72px; border-radius: 3px 3px 0 0; background: var(--bar-color); }
+    .chart-column:hover .chart-column-bar { filter: brightness(1.1); }
+    .chart-labels { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(var(--columns), minmax(0, 1fr)); gap: 12px; margin-top: 12px; text-align: center; font-size: .875rem; }
+    .chart-labels strong { display: block; font-weight: 650; overflow-wrap: anywhere; }
+    .chart-labels span { display: block; margin-top: 2px; color: var(--muted); overflow-wrap: anywhere; }
+    .chart-empty { position: absolute; left: 12px; right: 12px; top: 30%; padding: 12px; margin: 0; text-align: center; background: #fffffff2; color: var(--muted); font-size: .875rem; }
+    .analysis-figure figcaption { font-size: .875rem; color: var(--muted); margin-top: 18px; }
+    .analysis-summary { border-left: 1px solid var(--line); padding-left: 24px; }
+    .analysis-total-label { margin: 0; color: var(--muted); font-size: .875rem; }
+    .analysis-total { display: block; font-size: 2.15rem; line-height: 1.3; margin: 5px 0 16px; font-variant-numeric: tabular-nums; }
+    .analysis-total small { font-size: .9rem; font-weight: 500; color: var(--muted); margin-left: 5px; }
+    .analysis-top { background: #faf6f1; padding: 14px; border-radius: 7px; margin-bottom: 16px; }
+    .analysis-top p { margin: 0 0 4px; color: var(--muted); font-size: .875rem; }
+    .analysis-top strong { display: block; overflow-wrap: anywhere; }
+    .analysis-top span { display: block; color: var(--muted); font-size: .875rem; margin-top: 4px; }
+    .analysis-scope { font-size: .875rem; color: var(--muted); margin: 0; }
+    .analysis-data { margin-top: 24px; }
+    .analysis-data table { white-space: normal; }
+    .analysis-data th:first-child { width: 56%; background: transparent; color: var(--ink); font-weight: 500; }
+    .analysis-data thead th:first-child { background: #faf6f1; color: var(--muted); font-weight: 650; }
+    .analysis-data td { white-space: nowrap; }
+    .data-swatch { display: inline-block; width: 9px; height: 9px; margin-right: 9px; border-radius: 2px; background: var(--bar-color); }
     details { margin-top: 16px; }
     summary { cursor: pointer; min-height: 44px; padding: 8px 0; font-weight: 650; }
     table { width: 100%; border-collapse: collapse; font-size: .875rem; white-space: nowrap; }
@@ -96,16 +139,27 @@
       main { margin-top: 20px; }
       .report-grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-      .preference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .panel { padding: 18px; }
+      .analysis-panel { padding: 0; }
+      .analysis-heading, .analysis-content { padding-inline: 18px; }
+      .analysis-layout { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+      .analysis-summary { border-left: 0; border-top: 1px solid var(--line); padding: 18px 0 0; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 8px 16px; }
+      .analysis-total { margin-bottom: 0; }
+      .analysis-top { margin-bottom: 0; }
+      .analysis-scope { grid-column: 1 / -1; margin-top: 4px; }
     }
     @media (max-width: 480px) {
       .site-header, .page-head { align-items: flex-start; flex-direction: column; gap: 14px; }
       .range-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .range-form input { width: 100%; }
       .range-form .hint { align-self: center; margin: 0; }
-      .preference-grid { grid-template-columns: 1fr; }
       .stat { padding: 16px; }
+      .analysis-chart-head { padding-block: 16px; }
+      .analysis-tab { padding-inline: 11px; }
+      .chart-body { grid-template-rows: 220px auto; grid-template-columns: var(--axis-width, 32px) minmax(0, 1fr); column-gap: 6px; }
+      .chart-columns, .chart-labels { gap: 6px; }
+      .chart-column-bar { width: 62%; }
+      .analysis-data th, .analysis-data td { padding-inline: 8px; }
     }
   </style>
 </head>
@@ -172,10 +226,13 @@
           <div id="hour-chart" class="scroll" tabindex="0" aria-label="24 小時杯數圖表，可左右捲動"></div>
           <details><summary>查看各時段杯數</summary><div id="hour-table" class="scroll"></div></details>
         </section>
-        <section aria-labelledby="preference-title" class="section-space">
-          <div class="section-head"><h2 id="preference-title">口味選擇</h2><p class="hint">每項占比以有選擇該項的有效杯數計算</p></div>
-          <div id="main-preferences" class="preference-grid"></div>
-          <details class="panel"><summary>查看甜度、酸苦程度、奶量與冰量</summary><div id="more-preferences" class="preference-grid"></div></details>
+        <section aria-labelledby="preference-title" class="panel analysis-panel section-space">
+          <div class="analysis-heading"><h2 id="preference-title">口味選擇分析</h2><p class="hint">選擇一個項目，查看杯數分布與選項明細。</p></div>
+          <div id="main-preferences" class="analysis-content"></div>
+        </section>
+        <section aria-labelledby="customization-title" class="panel analysis-panel section-space">
+          <div class="analysis-heading"><h2 id="customization-title">甜度、酸苦程度與份量分析</h2><p class="hint">程度由 1 到 3 排列；奶量與冰量由少到多排列。</p></div>
+          <div id="more-preferences" class="analysis-content"></div>
         </section>
         <details class="panel"><summary>查看每日明細</summary><div id="daily-table" class="scroll"></div></details>
         <details class="panel rules"><summary>統計方式</summary>
@@ -194,6 +251,6 @@
   <footer class="footer"><span>口味研究室 · 店員數據</span><span>每天從一號開始，歷史持續累積</span></footer>
   <script src="config.js"></script>
   <script src="api.js"></script>
-  <script src="analytics.js?v=20261003-stats1"></script>
+  <script src="analytics.js?v=20261003-report2"></script>
 </body>
 </html>

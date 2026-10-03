@@ -95,6 +95,14 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
   #board-error { padding: 12px 0; }
   #load-more { margin-top: 22px; }
   .orders .empty { grid-column: 1 / -1; }
+  .day-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: white; }
+  .day-controls p { margin: 0; }
+  #business-date { font-weight: 700; }
+  .numbering-hint { color: var(--muted); font-size: .875rem; margin-top: 5px !important; }
+  .day-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .day-actions button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--selected); }
+  .previous-orders { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; padding: 12px 16px; background: var(--selected); border-radius: 8px; }
+  #day-message { margin: 0 0 16px; color: var(--accent); }
   .order-summary { margin: 0 0 10px; color: var(--muted); }
   .print-note { margin: 0; color: #355c65; font-size: .875rem; }
   .detail-dialog { width: min(880px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: white; }
@@ -157,6 +165,21 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
         <div class="stat"><strong id="total-count">0</strong><span>全部</span></div>
       </div>
     </section>
+    <section class="day-controls" aria-label="每日訂單編號">
+      <div>
+        <p id="business-date">正在讀取今日編號…</p>
+        <p class="numbering-hint">每天台灣時間 00:00 從 001 開始。已發出的號碼不會重用。</p>
+      </div>
+      <div class="day-actions">
+        <button class="button ghost" type="button" data-action="start-day" aria-pressed="true">開始新一天</button>
+        <button class="button ghost" type="button" data-period="all" aria-pressed="false">查看歷史</button>
+      </div>
+    </section>
+    <p id="day-message" role="status" hidden></p>
+    <div class="previous-orders" id="previous-orders" hidden>
+      <span id="previous-count"></span>
+      <button class="button ghost" type="button" data-action="previous-pending">查看待製作</button>
+    </div>
     <section class="toolbar" aria-label="看板工具">
       <div class="filters" role="tablist" aria-label="訂單篩選">
         <button class="filter active" type="button" data-filter="new" role="tab" aria-selected="true">新訂單</button>
@@ -210,6 +233,6 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
   <script src="api.js"></script>
   <script src="receipt-printer-encoder-3.0.3.js"></script>
   <script src="staff-print.js?v=20260913-bt1"></script>
-  <script src="staff.js?v=20260913-bt1"></script>
+  <script src="staff.js?v=20261003-daily1"></script>
 </body>
 </html>

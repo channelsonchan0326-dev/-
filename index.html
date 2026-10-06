@@ -187,7 +187,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
   .choices .choice-copy { padding-right: 8px; }
 }
 </style>
-  <link rel="stylesheet" href="xiaojia.css?v=20261006">
+  <link rel="stylesheet" href="xiaojia.css?v=20261006-assist1">
 </head>
 <body>
   <header class="site-header">
@@ -220,8 +220,9 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
     <span>小珈 · 聽懂你的喜好，做出你的咖啡。</span>
   </footer>
   <script src="config.js"></script>
-  <script src="api.js?v=20260928-fast1"></script>
-  <script src="xiaojia.js?v=20261006"></script>
+  <script src="api.js?v=20261006-assist1"></script>
+  <script src="coffee-assistance.js?v=20261006-assist1"></script>
+  <script src="xiaojia.js?v=20261006-assist1"></script>
   <script>
 // 小珈模組未載入時，原點餐流程仍可使用。
 const xiaojia = window.Xiaojia || {
@@ -247,6 +248,8 @@ const initialState = () => ({
 });
 let state = initialState();
 let screen = 'cover';
+let assistanceReturnScreen = 'cover';
+const assistance = window.CoffeeAssistance;
 let lastOrder = null;
 let submitting = false;
 let submitError = '';
@@ -392,6 +395,13 @@ function canContinue() {
   return screen === 'intensity';
 }
 function render(focusTitle = false) {
+  if (screen !== 'assistance') assistance?.saveContext({
+    state: screen === 'complete' ? initialState() : JSON.parse(JSON.stringify(state)),
+    screen: screen === 'complete' ? 'cover' : screen
+  });
+  document.querySelectorAll('[data-action="assistance"]').forEach(button => {
+    button.textContent = assistance?.label() || '請店員協助';
+  });
   const onCover = screen === 'cover';
   $('cover').hidden = !onCover;
   $('surface').hidden = onCover;
@@ -401,7 +411,7 @@ function render(focusTitle = false) {
     if (focusTitle) $('cover-title').focus();
     return;
   }
-  if (screen === 'assistance') $('surface').innerHTML = xiaojia.assistanceHTML?.() || '<section class="xiaojia-assistance"><h1 id="page-title" tabindex="-1">請店員協助</h1><p>請向櫃檯店員出示此畫面，告訴我們想喝什麼。</p><div class="xiaojia-assistance-actions"><button class="button primary" type="button" data-action="direct">店員開始點餐</button><button class="button secondary" type="button" data-action="assistance-back">返回封面</button></div></section>';
+  if (screen === 'assistance') $('surface').innerHTML = assistance?.viewHTML() || '<section class="xiaojia-assistance"><h1 id="page-title" tabindex="-1">請店員協助</h1><p>呼叫元件未載入，請直接向店員求助。</p><button class="button secondary" type="button" data-action="assistance-back">返回點餐</button></section>';
   else if (screen === 'complete') $('surface').innerHTML = completeView();
   else {
     const steps = sequence(), index = steps.indexOf(screen);
@@ -420,6 +430,7 @@ function render(focusTitle = false) {
     $('surface').innerHTML = `<section class="flow"><div class="flow-head"><span>${STEP_NAMES[screen]}</span><span>第 ${index + 1} / ${steps.length} 步</span></div><div class="progress" role="progressbar" aria-label="選擇進度" aria-valuemin="0" aria-valuemax="${steps.length}" aria-valuenow="${index + 1}">${steps.map((_, i) => `<i class="${i <= index ? 'done' : ''}" aria-hidden="true"></i>`).join('')}</div><form id="coffee-form" novalidate>${content}<div class="form-nav"><button class="back" type="button" data-action="back">← ${index === 0 ? '回封面' : '上一步'}</button><button class="button primary" type="submit" ${canContinue() ? '' : 'disabled'}>${screen === 'finish' ? '送出給店員' : '下一步 →'}</button></div></form></section>`;
   }
   const form = $('coffee-form');
+  if (form) form.insertAdjacentHTML('afterend', '<div class="assistance-shortcut"><button class="back" type="button" data-action="assistance" ' + (submitting ? 'disabled' : '') + '>' + (assistance?.label() || '請店員協助') + '</button></div>');
   if (form && submitting) {
     form.setAttribute('aria-busy', 'true');
     form.querySelectorAll('input, select, button').forEach(control => control.disabled = true);
@@ -482,6 +493,7 @@ function changeChoice(name, value) {
     const output = $(`${name}-description`);
     if (output) output.textContent = `目前選擇：${number - 1} · ${level.full[number - 1]}`;
     xiaojia.respond(name, value, state);
+    assistance?.saveContext({ state: JSON.parse(JSON.stringify(state)), screen });
     return;
   }
   if (!valid[name] || !valid[name].includes(value)) return;
@@ -504,12 +516,23 @@ document.addEventListener('submit', event => {
   if (event.target.id === 'coffee-form') { event.preventDefault(); next(); }
 });
 document.addEventListener('click', event => {
-  if (submitting) return;
+  if (submitting || assistance?.busy()) return;
   const button = event.target.closest('[data-action]');
   if (!button || button.disabled) return;
   const action = button.dataset.action;
-  if (action === 'assistance') { xiaojia.reset(); screen = 'assistance'; render(true); }
-  if (action === 'assistance-back') { xiaojia.reset(); screen = 'cover'; render(true); }
+  if (action === 'assistance') {
+    xiaojia.reset();
+    if (screen !== 'assistance') assistanceReturnScreen = screen;
+    const details = $('extra-options');
+    if (details) state.extraOpen = details.open;
+    assistance?.open({ state: JSON.parse(JSON.stringify(state)), screen: assistanceReturnScreen });
+    screen = 'assistance'; render(true);
+  }
+  if (action === 'assistance-back') {
+    xiaojia.reset();
+    if (assistanceReturnScreen === 'cover' && assistance?.active()) start('direct');
+    else { screen = assistanceReturnScreen; render(true); }
+  }
   if (action === 'guided' || action === 'direct') start(action);
   if (action === 'back') back();
   if (action === 'home' || action === 'restart') { xiaojia.reset(); state = initialState(); lastOrder = null; screen = 'cover'; render(true); }
@@ -519,6 +542,19 @@ if (pendingOrder?.selection && DRINKS[pendingOrder.selection.drink]) {
   screen = 'finish';
   submitError = '上次送出的訂單尚未確認。請再次送出以確認結果，同一筆不會重複成立。';
 }
+const savedHelp = assistance?.restore();
+if (!pendingOrder && savedHelp?.state && ['cover', 'milk', 'drink', 'sugar', 'direction', 'intensity', 'finish'].includes(savedHelp.screen)) {
+  state = { ...initialState(), ...savedHelp.state };
+  assistanceReturnScreen = savedHelp.screen;
+}
+if (assistance?.hasSavedCall()) {
+  if (pendingOrder) assistanceReturnScreen = 'finish';
+  screen = 'assistance';
+}
+assistance?.configure({ onChange: () => {
+  if (screen === 'assistance') render();
+  else document.querySelectorAll('[data-action="assistance"]').forEach(button => button.textContent = assistance.label());
+} });
 render();
 
 </script>

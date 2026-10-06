@@ -72,7 +72,8 @@ function render() {
   $('previous-count').textContent = businessInfo?.previousFresh ? '另有 ' + businessInfo.previousFresh + ' 張較早的待製作訂單。' : '';
   document.querySelector('[data-action="start-day"]').setAttribute('aria-pressed', String(currentPeriod === 'today'));
   document.querySelector('[data-period="all"]').setAttribute('aria-pressed', String(currentPeriod === 'all'));
-  document.title = counts.fresh ? '(' + counts.fresh + ') 新訂單｜店員看板' : '店員看板｜口味研究室';
+  if (window.CoffeeStaffAssistance) CoffeeStaffAssistance.updateTitle();
+  else document.title = counts.fresh ? '(' + counts.fresh + ') 新訂單｜店員看板' : '店員看板｜口味研究室';
   document.querySelectorAll('[data-filter]').forEach(button => {
     const active = button.dataset.filter === currentFilter;
     button.classList.toggle('active', active);
@@ -94,6 +95,7 @@ function showSession() {
   $('board').hidden = !active;
   document.querySelector('[data-action="logout"]').hidden = !active;
   document.querySelector('[data-action="refresh"]').hidden = !active;
+  window.CoffeeStaffAssistance?.setSession(token);
 }
 function logout(message = '') {
   closeDetail();
@@ -366,7 +368,7 @@ document.addEventListener('click', event => {
   const button = event.target.closest('[data-action]');
   if (!button || button.disabled) return;
   const { action, id } = button.dataset;
-  if (action === 'refresh') refresh();
+  if (action === 'refresh') { refresh(); window.CoffeeStaffAssistance?.refresh(); }
   else if (action === 'logout') logout();
   else if (action === 'start-day') switchPeriod('today', 'new', true);
   else if (action === 'previous-pending') switchPeriod('all', 'new');
@@ -380,5 +382,9 @@ window.addEventListener('offline', () => {
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 setInterval(() => { if (!document.hidden) refresh(); }, 5000);
+window.CoffeeStaffAssistance?.configure({
+  onUnauthorized: () => logout('登入已失效，請重新登入。'),
+  getOrderCount: () => counts.fresh
+});
 showSession();
 if (token) refresh();

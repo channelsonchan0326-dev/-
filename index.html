@@ -187,7 +187,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
   .choices .choice-copy { padding-right: 8px; }
 }
 </style>
-  <link rel="stylesheet" href="xiaojia.css?v=20261005">
+  <link rel="stylesheet" href="xiaojia.css?v=20261006">
 </head>
 <body>
   <header class="site-header">
@@ -206,6 +206,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
         <div class="cover-actions">
           <button class="button primary" type="button" data-action="guided">跟小珈選一杯 <span aria-hidden="true">→</span></button>
           <button class="button secondary" type="button" data-action="direct">直接選飲品</button>
+          <button class="button secondary xiaojia-assist-button" type="button" data-action="assistance">請店員協助</button>
         </div>
         <p class="cover-hint">已經知道想喝什麼？直接選飲品就好。</p>
       </div>
@@ -220,7 +221,7 @@ dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-weight: 550; }
   </footer>
   <script src="config.js"></script>
   <script src="api.js?v=20260928-fast1"></script>
-  <script src="xiaojia.js?v=20261005"></script>
+  <script src="xiaojia.js?v=20261006"></script>
   <script>
 // 小珈模組未載入時，原點餐流程仍可使用。
 const xiaojia = window.Xiaojia || {
@@ -394,13 +395,14 @@ function render(focusTitle = false) {
   const onCover = screen === 'cover';
   $('cover').hidden = !onCover;
   $('surface').hidden = onCover;
-  $('header-label').textContent = onCover ? '顧客客製體驗' : screen === 'complete' ? '口味確認' : state.mode === 'direct' ? '直接選飲品' : '我的客製咖啡';
+  $('header-label').textContent = onCover ? '顧客客製體驗' : screen === 'assistance' ? '店員協助點餐' : screen === 'complete' ? '口味確認' : state.mode === 'direct' ? '直接選飲品' : '我的客製咖啡';
   if (onCover) {
     $('surface').innerHTML = '';
     if (focusTitle) $('cover-title').focus();
     return;
   }
-  if (screen === 'complete') $('surface').innerHTML = completeView();
+  if (screen === 'assistance') $('surface').innerHTML = xiaojia.assistanceHTML?.() || '<section class="xiaojia-assistance"><h1 id="page-title" tabindex="-1">請店員協助</h1><p>請向櫃檯店員出示此畫面，告訴我們想喝什麼。</p><div class="xiaojia-assistance-actions"><button class="button primary" type="button" data-action="direct">店員開始點餐</button><button class="button secondary" type="button" data-action="assistance-back">返回封面</button></div></section>';
+  else if (screen === 'complete') $('surface').innerHTML = completeView();
   else {
     const steps = sequence(), index = steps.indexOf(screen);
     let content = '';
@@ -506,6 +508,8 @@ document.addEventListener('click', event => {
   const button = event.target.closest('[data-action]');
   if (!button || button.disabled) return;
   const action = button.dataset.action;
+  if (action === 'assistance') { xiaojia.reset(); screen = 'assistance'; render(true); }
+  if (action === 'assistance-back') { xiaojia.reset(); screen = 'cover'; render(true); }
   if (action === 'guided' || action === 'direct') start(action);
   if (action === 'back') back();
   if (action === 'home' || action === 'restart') { xiaojia.reset(); state = initialState(); lastOrder = null; screen = 'cover'; render(true); }

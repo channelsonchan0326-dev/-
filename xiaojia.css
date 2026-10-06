@@ -47,6 +47,32 @@
 .xiaojia-completion-reply { margin: 12px 0 6px; }
 .xiaojia-completion .xiaojia-signature { margin: 9px 0 14px; }
 .xiaojia-order-status { color: #70635d; font-size: .875rem; margin: 0; }
+.xiaojia-assistance {
+  max-width: 680px;
+  margin: 36px auto 50px;
+}
+.xiaojia-assistance-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 24px;
+  margin-top: 24px;
+  background: #fffdf9;
+  border: 1px solid #e3d9d0;
+  border-radius: 14px;
+}
+.xiaojia-assistance-card > div:last-child { min-width: 0; }
+.xiaojia-assistance-request {
+  margin: 0 0 8px;
+  font-size: clamp(1.3rem, 4vw, 1.7rem);
+  font-weight: 700;
+  line-height: 1.6;
+}
+.xiaojia-assistance-instruction { margin: 0; color: #70635d; font-size: 1rem; }
+.xiaojia-assistance-note { margin: 22px 0; color: #70635d; }
+.xiaojia-assistance-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.xiaojia-assistance-actions .button { min-height: 54px; }
+.xiaojia-cover .xiaojia-assist-button { border-style: dashed; }
 
 /* 封面沿用已確認的小珈版本；只套用於加上此 class 的顧客封面。 */
 .cover.xiaojia-cover {
@@ -86,6 +112,10 @@
   .xiaojia-avatar { width: 64px; height: 64px; flex-basis: 64px; }
   .xiaojia-speech { padding: 11px 14px; }
   .xiaojia-complete-image { width: 220px; }
+  .xiaojia-assistance { margin: 25px auto 36px; }
+  .xiaojia-assistance-card { padding: 23px 18px; gap: 14px; align-items: flex-start; }
+  .xiaojia-assistance-actions { display: grid; }
+  .xiaojia-assistance-actions .button { width: 100%; }
 }
 @media (max-width: 359px) {
   .xiaojia-avatar { width: 56px; height: 56px; flex-basis: 56px; }

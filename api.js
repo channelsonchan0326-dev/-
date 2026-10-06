@@ -2,7 +2,7 @@ window.CoffeeAPI = {
   async request(path, { method = 'GET', body, token } = {}) {
     const base = window.COFFEE_API_URL;
     if (!base) throw new Error('點餐服務尚未設定，請洽店員。');
-    const orderForm = method === 'POST' && path === '/api/orders' && body && !token;
+    const orderForm = method === 'POST' && ['/api/orders', '/api/assistance'].includes(path) && body && !token;
     const serialized = body ? JSON.stringify(body) : undefined;
     const signal = AbortSignal.timeout(15000);
     const send = form => fetch(base + path, {

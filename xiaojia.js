@@ -89,6 +89,7 @@
   }
 
   function assistanceHTML() {
+    if (window.CoffeeAssistance) return window.CoffeeAssistance.viewHTML();
     return `<section class="xiaojia-assistance" aria-labelledby="page-title"><p class="eyebrow">不用急，我們一起選。</p><h1 id="page-title" tabindex="-1">請店員協助</h1><div class="xiaojia-assistance-card"><div class="xiaojia-avatar" role="img" aria-label="小珈聆聽你的需求"></div><div><p class="xiaojia-assistance-request">我想請你幫我點餐。</p><p class="xiaojia-assistance-instruction">請向櫃檯店員出示此畫面。</p></div></div><p class="xiaojia-assistance-note">只要告訴我們想喝什麼，其他可以照店家標準。</p><div class="xiaojia-assistance-actions"><button class="button primary" type="button" data-action="direct">店員開始點餐</button><button class="button secondary" type="button" data-action="assistance-back">返回封面</button></div></section>`;
   }
 

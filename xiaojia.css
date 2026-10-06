@@ -1,0 +1,95 @@
+/* 所有新元件使用 xiaojia 前綴；店員頁不載入這份樣式。 */
+.xiaojia-guide {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 25px;
+}
+.xiaojia-avatar {
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  border-radius: 50%;
+  background: #f8f1e6 url('assets/xiaojia-brand.webp') no-repeat;
+  background-size: 552.52% auto;
+  background-position: 72.18% 14.08%;
+}
+.xiaojia-avatar.xiaojia-smiling { background-position: 96.98% 9.38%; }
+.xiaojia-speech {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 17px;
+  border-radius: 12px;
+  background: #fbede3;
+  color: #25201e;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.xiaojia-name {
+  display: block;
+  margin-bottom: 4px;
+  color: #9e3e24;
+  font-size: .875rem;
+  font-weight: 650;
+}
+.xiaojia-speech p { margin: 0; }
+.xiaojia-signature { color: #9e3e24; font-size: .875rem; line-height: 1.7; }
+.xiaojia-completion { text-align: center; }
+.xiaojia-complete-image {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  margin: 0 auto 14px;
+}
+.xiaojia-completion-reply { margin: 12px 0 6px; }
+.xiaojia-completion .xiaojia-signature { margin: 9px 0 14px; }
+.xiaojia-order-status { color: #70635d; font-size: .875rem; margin: 0; }
+
+/* 封面沿用已確認的小珈版本；只套用於加上此 class 的顧客封面。 */
+.cover.xiaojia-cover {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: 'art copy';
+  min-height: 470px;
+  background: #fffdf9;
+  color: #25201e;
+  border: 1px solid #e3d9d0;
+}
+.xiaojia-cover .cover-copy { grid-area: copy; padding: 40px 34px; }
+.xiaojia-cover .eyebrow { color: #9e3e24; letter-spacing: .02em; }
+.xiaojia-cover h1 { font-size: clamp(1.85rem, 3.6vw, 2.7rem); line-height: 1.45; }
+.xiaojia-cover .intro { color: #70635d; }
+.xiaojia-cover .cover-hint { color: #70635d; }
+.xiaojia-cover .cover-actions { display: grid; }
+.xiaojia-cover .primary { background: #9e3e24; color: #fff; }
+.xiaojia-cover .secondary { background: white; color: #25201e; border-color: #e3d9d0; }
+.xiaojia-cover-art {
+  grid-area: art;
+  min-width: 0;
+  background: #f8f1e6 url('assets/xiaojia-brand.webp') no-repeat left top;
+  background-size: 370% auto;
+}
+@media (max-width: 720px) {
+  .cover.xiaojia-cover {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'art' 'copy';
+    min-height: 0;
+    max-width: 480px;
+    margin-inline: auto;
+  }
+  .xiaojia-cover-art { aspect-ratio: 1.3; }
+  .xiaojia-cover .cover-copy { padding: 25px 23px 24px; }
+  .xiaojia-cover h1 { font-size: clamp(1.75rem, 7.5vw, 2.1rem); }
+  .xiaojia-guide { gap: 12px; }
+  .xiaojia-avatar { width: 64px; height: 64px; flex-basis: 64px; }
+  .xiaojia-speech { padding: 11px 14px; }
+  .xiaojia-complete-image { width: 220px; }
+}
+@media (max-width: 359px) {
+  .xiaojia-avatar { width: 56px; height: 56px; flex-basis: 56px; }
+  .xiaojia-guide { gap: 10px; }
+  .xiaojia-speech { padding: 10px 12px; }
+  .xiaojia-name { font-size: .8125rem; }
+}

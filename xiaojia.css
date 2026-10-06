@@ -73,6 +73,16 @@
 .xiaojia-assistance-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .xiaojia-assistance-actions .button { min-height: 54px; }
 .xiaojia-cover .xiaojia-assist-button { border-style: dashed; }
+.assistance-location { margin: 24px 0; }
+.assistance-location label { display: block; font-weight: 700; margin-bottom: 8px; }
+.assistance-location input { width: 100%; min-height: 54px; border: 1px solid #e3d9d0; border-radius: 10px; padding: 12px 15px; font: inherit; color: #25201e; background: white; }
+.assistance-location input:disabled { background: #f1ebe5; opacity: 1; }
+.assistance-location input:focus-visible { outline: 3px solid #b87343; outline-offset: 3px; }
+.assistance-location .hint { margin: 8px 0; }
+.assistance-code { margin: 12px 0 0; color: #9e3e24; font-weight: 700; overflow-wrap: anywhere; }
+.assistance-error { color: #9b2323; padding: 14px; border: 1px solid #e3bab2; border-radius: 10px; background: #fff7f4; }
+.assistance-shortcut { margin-top: 18px; text-align: center; }
+.assistance-shortcut button { min-height: 48px; }
 
 /* 封面沿用已確認的小珈版本；只套用於加上此 class 的顧客封面。 */
 .cover.xiaojia-cover {
